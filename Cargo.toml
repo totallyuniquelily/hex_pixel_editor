@@ -7,4 +7,6 @@ edition = "2021"
 
 [dependencies]
 macroquad = "0.3"
-lodepng = "3.7"
+png = "0.17"
+rgb = "0.8"
+imgref = "1.9"
