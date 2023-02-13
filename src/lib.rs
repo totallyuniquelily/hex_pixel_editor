@@ -2,9 +2,9 @@ use std::io::Write;
 
 use imgref::{ImgRef, ImgVec};
 use macroquad::prelude::*;
+use png::BitDepth;
 use rgb::{ComponentBytes, RGB8 as RGB};
-
-/// Not to be confused with [`lodepng::Image`] or [`macroquad::Image`]
+/// Not to be confused with `lodepng::Image` or `macroquad::Image`
 pub struct Image {
     palette: Vec<RGB>,
     image: ImgVec<u8>,
@@ -26,6 +26,27 @@ impl Image {
             trns,
         }
     }
+
+    /// Creates image from raw u8 buffers.
+    ///
+    /// currently the palette has to be copied to a new vec,
+    /// but this should be fixed later on.
+    pub fn from_buffers(
+        width: u32,
+        height: u32,
+        pixels: Vec<u8>,
+        palette: Vec<RGB>,
+        trns: Vec<u8>,
+    ) -> Self {
+        let image = ImgVec::new(pixels, width as usize, height as usize);
+
+        Self {
+            image,
+            palette,
+            trns,
+        }
+    }
+
     pub fn palette(&self) -> &[RGB] {
         &self.palette
     }
@@ -86,11 +107,13 @@ impl Image {
             buffer.push(self.trns.get(i).copied().unwrap_or(255));
         }
 
-        Texture2D::from_rgba8(
+        let t = Texture2D::from_rgba8(
             width.try_into().unwrap(),
             height.try_into().unwrap(),
             &buffer,
-        )
+        );
+        t.set_filter(FilterMode::Nearest);
+        t
     }
 
     pub fn encode<W: Write>(&self, w: W) {
@@ -121,5 +144,41 @@ impl Default for Image {
         /// The width/height of the image
         const N: usize = 16;
         Self::new(N, N)
+    }
+}
+
+/// Unpack from bitdepth under 8 bits to whole bytes
+pub fn unpack(packed: &[u8], bitdepth: BitDepth) -> Vec<u8> {
+    match bitdepth {
+        BitDepth::Sixteen => panic!("cannot unpack 16 bits"),
+        BitDepth::Eight => {
+            warn!("unpacking from 8 bits to 8 bits (unnecessary allocation");
+            packed.to_owned()
+        }
+        bitdepth => {
+            let bitdepth = bitdepth as u8;
+            let mut buf_w = Vec::<u8>::with_capacity(packed.len() / (8 / bitdepth) as usize);
+            let modulus = 2u8.pow(bitdepth as u32);
+            for byte in packed {
+                for sub_byte in 0..8 / bitdepth {
+                    let px = (byte >> (sub_byte * bitdepth)) % modulus;
+                    buf_w.push(px);
+                }
+            }
+            buf_w
+        }
+    }
+}
+
+#[cfg(test)]
+pub mod test {
+    use super::*;
+    use png::BitDepth;
+
+    #[test]
+    fn unpack_test() {
+        let v = vec![0b11111111; 8];
+        let x = unpack(&v, BitDepth::Two);
+        assert_eq!(x, [0b0000_0011; 8 * 4]);
     }
 }
