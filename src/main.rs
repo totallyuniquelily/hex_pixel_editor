@@ -1,12 +1,13 @@
 use std::path::Path;
 
 use anyhow::Result;
-use hex_pixel_editor as hex;
 use macroquad::prelude::*;
 use macroquad::ui::*;
 use png::BitDepth;
 use png::Transformations;
 use rgb::RGB8 as RGB;
+
+mod image;
 
 const BG_COLOR: Color = color_u8!(60, 10, 0, 255);
 
@@ -58,10 +59,10 @@ async fn main() -> Result<()> {
     let buf = match o_info.bit_depth {
         BitDepth::Sixteen => panic!("16-bit colormap png!?"),
         BitDepth::Eight => buf,
-        bitdepth => hex::unpack(&buf, bitdepth),
+        bitdepth => image::unpack(&buf, bitdepth),
     };
 
-    let img = hex::Image::from_buffers(o_info.width, o_info.height, buf, palette, trns);
+    let img = image::Image::from_buffers(o_info.width, o_info.height, buf, palette, trns);
 
     let texture = img.to_texture();
     loop {
