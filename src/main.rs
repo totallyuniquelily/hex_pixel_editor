@@ -2,9 +2,7 @@ use std::path::Path;
 
 use anyhow::Result;
 use macroquad::prelude::*;
-use macroquad::ui::*;
 use png::BitDepth;
-use png::Transformations;
 use rgb::RGB8 as RGB;
 
 mod image;
@@ -46,13 +44,11 @@ async fn main() -> Result<()> {
             palette.extend([RGB::default(); 2]);
         }
     }
-    println!("palette: {palette:#?}");
 
     let trns = match png.info().trns.clone() {
         Some(c) => c.into_owned(),
         None => Vec::with_capacity(255),
     };
-    println!("trns: {trns:#?}");
 
     let mut buf = vec![0; png.output_buffer_size()];
     let o_info = png.next_frame(&mut buf)?;
@@ -65,12 +61,21 @@ async fn main() -> Result<()> {
     let img = image::Image::from_buffers(o_info.width, o_info.height, buf, palette, trns);
 
     let texture = img.to_texture();
+    let mut img_scale = 1.0;
     loop {
         clear_background(BG_COLOR);
-        // if imgs.len() == 0 {
-        //     draw_text("No images open", 20., 20., 20., BLACK);
-        // }
-        let s = screen_height().min(screen_width());
+
+        // Handle input
+        // Scale buttons
+        if is_key_pressed(KeyCode::Equal) {
+            img_scale += 0.1;
+        }
+        if is_key_pressed(KeyCode::Minus) {
+            img_scale -= 0.1;
+        }
+
+        // Draw Image
+        let s = screen_height().min(screen_width()) * img_scale;
         draw_texture_ex(
             texture,
             0.,
