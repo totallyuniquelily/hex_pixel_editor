@@ -1,3 +1,5 @@
+// todo: don't allow(dead_code)
+#![allow(dead_code)]
 use std::io::Write;
 
 use imgref::{ImgRef, ImgVec};
@@ -6,8 +8,8 @@ use png::BitDepth;
 use rgb::{ComponentBytes, RGB8 as RGB};
 /// Not to be confused with `lodepng::Image` or `macroquad::Image`
 pub struct Image {
-    palette: Vec<RGB>,
     image: ImgVec<u8>,
+    palette: Vec<RGB>,
     /// Transparency table, can be shorter than palette (but not longer)
     trns: Vec<u8>,
 }
@@ -158,7 +160,7 @@ pub fn unpack(packed: &[u8], bitdepth: BitDepth) -> Vec<u8> {
         bitdepth => {
             let bitdepth = bitdepth as u8;
             let mut buf_w = Vec::<u8>::with_capacity(packed.len() / (8 / bitdepth) as usize);
-            let modulus = 2u8.pow(bitdepth as u32);
+            let modulus = 2u8.pow(u32::from(bitdepth));
             for byte in packed {
                 for sub_byte in 0..8 / bitdepth {
                     let px = (byte >> (sub_byte * bitdepth)) % modulus;
@@ -177,7 +179,7 @@ pub mod test {
 
     #[test]
     fn unpack_test() {
-        let v = vec![0b11111111; 8];
+        let v = vec![0b1111_1111; 8];
         let x = unpack(&v, BitDepth::Two);
         assert_eq!(x, [0b0000_0011; 8 * 4]);
     }

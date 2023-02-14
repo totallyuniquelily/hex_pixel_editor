@@ -26,7 +26,7 @@ async fn main() -> Result<()> {
     };
 
     // Decode png
-    let mut png = png::Decoder::new(file);
+    let png = png::Decoder::new(file);
     let mut png = png.read_info()?;
 
     if png.info().color_type != png::ColorType::Indexed {
