@@ -178,9 +178,16 @@ pub mod test {
     use png::BitDepth;
 
     #[test]
-    fn unpack_test() {
+    fn unpack_test_2() {
         let v = vec![0b1111_1111; 8];
         let x = unpack(&v, BitDepth::Two);
         assert_eq!(x, [0b0000_0011; 8 * 4]);
+    }
+
+    #[test]
+    fn unpack_test_4() {
+        let v = vec![0b1111_1111; 8];
+        let x = unpack(&v, BitDepth::Four);
+        assert_eq!(x, [0b0000_1111; 8 * 2]);
     }
 }
