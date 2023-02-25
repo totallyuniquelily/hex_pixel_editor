@@ -87,6 +87,28 @@ async fn main() -> Result<()> {
                 ..Default::default()
             },
         );
+
+        // draw palette panel
+        let padding = 3.0;
+        let inner_width = 208.0;
+        let width = inner_width + padding;
+        let topx = screen_width() - width;
+        draw_rectangle(topx, 0.0, width, screen_height(), BLACK);
+        for (i, rgb) in img.palette().iter().enumerate() {
+            let logical_x = (i % 16) as f32;
+            let logical_y = (i / 16) as f32;
+            let x = logical_x * inner_width / 16. + topx;
+            let y = logical_y * inner_width / 16.;
+            let color = Color::from_rgba(rgb.r, rgb.g, rgb.b, 255);
+            draw_rectangle(
+                x + padding,
+                y + padding,
+                inner_width / 16. - padding,
+                inner_width / 16. - padding,
+                color,
+            );
+        }
+
         next_frame().await;
     }
 }
