@@ -75,14 +75,15 @@ async fn main() -> Result<()> {
         }
 
         // Draw Image
-        let s = screen_height().min(screen_width()) * img_scale;
+        let aspect_ratio = texture.width() / texture.height();
+        let s = (screen_height() * aspect_ratio).min(screen_width()) * img_scale;
         draw_texture_ex(
             texture,
             0.,
             0.,
             WHITE,
             DrawTextureParams {
-                dest_size: Some(Vec2::new(s, s)),
+                dest_size: Some(Vec2::new(s, s / aspect_ratio)),
                 ..Default::default()
             },
         );
