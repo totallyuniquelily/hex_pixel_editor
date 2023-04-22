@@ -149,8 +149,10 @@ impl Default for Image {
     }
 }
 
-/// Unpack from bitdepth under 8 bits to whole bytes
-pub fn unpack(packed: &[u8], bitdepth: BitDepth) -> Vec<u8> {
+/// Unpack from bitdepth under 8 bits to whole bytes.
+/// Removes  padding at the end of scanlines.
+/// https://datatracker.ietf.org/doc/html/rfc2083#page-7 (section 2.3)
+pub fn unpack(packed: &[u8], bitdepth: BitDepth, line_width: usize) -> Vec<u8> {
     match bitdepth {
         BitDepth::Sixteen => panic!("cannot unpack 16 bits"),
         BitDepth::Eight => {
@@ -160,11 +162,27 @@ pub fn unpack(packed: &[u8], bitdepth: BitDepth) -> Vec<u8> {
         bitdepth => {
             let bitdepth = bitdepth as u8;
             let mut buf_w = Vec::<u8>::with_capacity(packed.len() / (8 / bitdepth) as usize);
+            // modulus for extracting lower `bitdepth` bits.
             let modulus = 2u8.pow(u32::from(bitdepth));
-            for byte in packed {
-                for sub_byte in 0..8 / bitdepth {
-                    let px = (byte >> (sub_byte * bitdepth)) % modulus;
+            // because the modulus is a power of 2, the preceding number
+            // consists of `bitdepth` repeated ones
+            // (i.e.: bitdepth = 4 => mask = 0b0000_1111)
+            // try it with a numeral system/programming mode calculator!
+            let mask = modulus - 1;
+            let px_per_byte = 8 / bitdepth as usize;
+            let mut line_pos = 0;
+            for byte in packed.iter() {
+                // iterate over pixel indices in byte
+                // ends early if the pixels are "wasted bytes"
+                for pxi in 0..px_per_byte.min(line_width - line_pos) {
+                    // biggest offset (leftmost bits) goes first. last offset is 0.
+                    let offset = (px_per_byte - pxi - 1) * bitdepth as usize;
+                    let px = (byte >> offset) & mask;
                     buf_w.push(px);
+                    line_pos += 1;
+                }
+                if line_pos >= line_width {
+                    line_pos = 0;
                 }
             }
             buf_w
@@ -180,14 +198,29 @@ pub mod test {
     #[test]
     fn unpack_test_2() {
         let v = vec![0b1111_1111; 8];
-        let x = unpack(&v, BitDepth::Two);
+        let x = unpack(&v, BitDepth::Two, 8 * 4);
         assert_eq!(x, [0b0000_0011; 8 * 4]);
     }
 
     #[test]
     fn unpack_test_4() {
         let v = vec![0b1111_1111; 8];
-        let x = unpack(&v, BitDepth::Four);
+        let x = unpack(&v, BitDepth::Four, 8 * 2);
         assert_eq!(x, [0b0000_1111; 8 * 2]);
+    }
+
+    #[test]
+    fn unpack_test_4_2() {
+        let v = vec![0b1011_1011; 8];
+        let x = unpack(&v, BitDepth::Four, 8 * 2);
+        assert_eq!(x, [0b0000_1011; 8 * 2]);
+    }
+
+    #[test]
+    fn unpack_test_4_width() {
+        let v = [0x01, 0x2a, 0x34, 0x5b, 0x67, 0x8c];
+        let x = unpack(&v, BitDepth::Four, 3);
+        let res = [0, 1, 2, 3, 4, 5, 6, 7, 8];
+        assert_eq!(x, res);
     }
 }

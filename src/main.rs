@@ -55,7 +55,7 @@ async fn main() -> Result<()> {
     let buf = match o_info.bit_depth {
         BitDepth::Sixteen => panic!("16-bit colormap png!?"),
         BitDepth::Eight => buf,
-        bitdepth => image::unpack(&buf, bitdepth),
+        bitdepth => image::unpack(&buf, bitdepth, o_info.width as usize),
     };
 
     let img = image::Image::from_buffers(o_info.width, o_info.height, buf, palette, trns);
