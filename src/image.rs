@@ -70,6 +70,7 @@ impl Image {
 
     pub fn push_color(&mut self, color: RGB) {
         self.palette.push(color);
+        assert!(self.palette.len() < 256);
     }
 
     pub fn set_transparency(&mut self, index: u8, transparency: u8) {

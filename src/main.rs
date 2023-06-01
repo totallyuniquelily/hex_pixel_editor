@@ -29,9 +29,10 @@ async fn main() -> Result<()> {
     let png = png::Decoder::new(file);
     let mut png = png.read_info()?;
 
-    if png.info().color_type != png::ColorType::Indexed {
-        panic!("Image isn't palette-based");
-    }
+    assert!(
+        png.info().color_type == png::ColorType::Indexed,
+        "Image must be palette-based"
+    );
 
     let mut palette = Vec::with_capacity(256);
     match png.info().palette.clone() {
