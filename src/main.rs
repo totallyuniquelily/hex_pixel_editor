@@ -74,9 +74,14 @@ async fn main() -> Result<()> {
             img_scale -= 0.1;
         }
 
+        // palette panel size
+        let padding: f32 = 3.0;
+        let inner_width: f32 = 208.0;
+        let panel_width: f32 = inner_width + padding;
+
         // Draw Image
         let aspect_ratio = texture.width() / texture.height();
-        let s = (screen_height() * aspect_ratio).min(screen_width()) * img_scale;
+        let s = (screen_height() * aspect_ratio).min(screen_width() - panel_width) * img_scale;
         draw_texture_ex(
             texture,
             0.,
@@ -88,12 +93,9 @@ async fn main() -> Result<()> {
             },
         );
 
-        // draw palette panel
-        let padding = 3.0;
-        let inner_width = 208.0;
-        let width = inner_width + padding;
-        let topx = screen_width() - width;
-        draw_rectangle(topx, 0.0, width, screen_height(), BLACK);
+        // draw panel
+        let topx = screen_width() - panel_width;
+        draw_rectangle(topx, 0.0, panel_width, screen_height(), BLACK);
         for (i, rgb) in img.palette().iter().enumerate() {
             let logical_x = (i % 16) as f32;
             let logical_y = (i / 16) as f32;
@@ -108,7 +110,6 @@ async fn main() -> Result<()> {
                 color,
             );
         }
-
         next_frame().await;
     }
 }
