@@ -14,7 +14,8 @@ async fn main() -> Result<()> {
     // Parse arg
     let mut args = std::env::args();
     if args.len() != 2 {
-        panic!("Usage: {} filename", args.next().unwrap());
+        println!("Usage: {} filename", args.next().unwrap());
+        return Ok(());
     }
     let arg = args.nth(1).unwrap();
     // Open file
