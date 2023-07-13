@@ -151,8 +151,9 @@ impl Default for Image {
 }
 
 /// Unpack from bitdepth under 8 bits to whole bytes.
+///
 /// Removes  padding at the end of scanlines.
-/// https://datatracker.ietf.org/doc/html/rfc2083#page-7 (section 2.3)
+/// See [RFC 2083 (section 2.3)](https://datatracker.ietf.org/doc/html/rfc2083#page-7)
 pub fn unpack(packed: &[u8], bitdepth: BitDepth, line_width: usize) -> Vec<u8> {
     match bitdepth {
         BitDepth::Sixteen => panic!("cannot unpack 16 bits"),
