@@ -77,15 +77,38 @@ async fn main() -> Result<()> {
         }
 
         // palette panel size
-        let padding: f32 = 3.0;
-        let inner_width: f32 = 208.0;
-        let panel_width: f32 = inner_width + padding;
+        let panel = PanelSettings {
+            padding: 3.0,
+            inner_width: 208.0,
+        };
 
-        // Draw Image
+        // Draw Image and panel
+        panel.draw_image(&texture, img_scale);
+        panel.draw_panel(&img);
+
+        next_frame().await;
+    }
+}
+
+struct PanelSettings {
+    padding: f32,
+    inner_width: f32,
+    // panel_width: f32,
+    // display: bool,
+}
+
+impl PanelSettings {
+    #[inline]
+    fn panel_width(&self) -> f32 {
+        self.inner_width + self.padding
+    }
+
+    fn draw_image(&self, texture: &Texture2D, img_scale: f32) {
         let aspect_ratio = texture.width() / texture.height();
-        let s = (screen_height() * aspect_ratio).min(screen_width() - panel_width) * img_scale;
+        let s =
+            (screen_height() * aspect_ratio).min(screen_width() - self.panel_width()) * img_scale;
         draw_texture_ex(
-            texture,
+            *texture,
             0.,
             0.,
             WHITE,
@@ -94,24 +117,24 @@ async fn main() -> Result<()> {
                 ..Default::default()
             },
         );
+    }
 
-        // draw panel
-        let topx = screen_width() - panel_width;
-        draw_rectangle(topx, 0.0, panel_width, screen_height(), BLACK);
+    fn draw_panel(&self, img: &image::Image) {
+        let topx = screen_width() - self.panel_width();
+        draw_rectangle(topx, 0.0, self.panel_width(), screen_height(), BLACK);
         for (i, rgb) in img.palette().iter().enumerate() {
             let logical_x = (i % 16) as f32;
             let logical_y = (i / 16) as f32;
-            let x = logical_x * inner_width / 16. + topx;
-            let y = logical_y * inner_width / 16.;
+            let x = logical_x * self.inner_width / 16. + topx;
+            let y = logical_y * self.inner_width / 16.;
             let color = Color::from_rgba(rgb.r, rgb.g, rgb.b, 255);
             draw_rectangle(
-                x + padding,
-                y + padding,
-                inner_width / 16. - padding,
-                inner_width / 16. - padding,
+                x + self.padding,
+                y + self.padding,
+                self.inner_width / 16. - self.padding,
+                self.inner_width / 16. - self.padding,
                 color,
             );
         }
-        next_frame().await;
     }
 }
