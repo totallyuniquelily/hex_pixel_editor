@@ -13,7 +13,7 @@ const BG_COLOR: Color = color_u8!(60, 10, 0, 255);
 
 #[macroquad::main("Png editor")]
 async fn main() -> Result<()> {
-    let font = FontImg::load("./font_img.png");
+    let font = FontImg::load("./font_img.png").await?;
 
     // Parse arg
     let mut args = std::env::args();
