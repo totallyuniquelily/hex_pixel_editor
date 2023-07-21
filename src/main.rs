@@ -6,11 +6,15 @@ use png::BitDepth;
 use rgb::RGB8 as RGB;
 
 mod image;
+mod text;
+use text::*;
 
 const BG_COLOR: Color = color_u8!(60, 10, 0, 255);
 
 #[macroquad::main("Png editor")]
 async fn main() -> Result<()> {
+    let font = FontImg::load("./font_img.png");
+
     // Parse arg
     let mut args = std::env::args();
     if args.len() != 2 {
