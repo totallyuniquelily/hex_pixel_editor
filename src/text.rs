@@ -24,7 +24,7 @@ impl FontImg {
     /// draw a single hexadecimal digit. dimensions are 3*scale / 7*scale.
     pub fn draw_digit(&self, digit: u8, x: f32, y: f32, color: Color, scale: f32) {
         draw_texture_ex(
-            self.texture,
+            &self.texture,
             x,
             y,
             color,

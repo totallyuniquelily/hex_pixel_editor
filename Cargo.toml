@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-macroquad = { version = "0.3", default-features = false }
+macroquad = { version = "0.4", default-features = false }
 png = "0.17"
 rgb = "0.8"
 imgref = "1.9"

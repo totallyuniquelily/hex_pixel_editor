@@ -112,7 +112,7 @@ impl PanelSettings {
         let s =
             (screen_height() * aspect_ratio).min(screen_width() - self.panel_width()) * img_scale;
         draw_texture_ex(
-            *texture,
+            texture,
             0.,
             0.,
             WHITE,
