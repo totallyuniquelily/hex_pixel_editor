@@ -24,9 +24,9 @@ async fn main() -> Result<()> {
         let path = Path::new(&arg);
         let file = std::fs::File::open(path);
         let Ok(file) = file else {
-        let e = file.unwrap_err();
-        panic!("error while opening file: {e}");
-    };
+            let e = file.unwrap_err();
+            panic!("error while opening file: {e}");
+        };
 
         // Decode png
         let png = png::Decoder::new(file);
