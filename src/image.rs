@@ -135,7 +135,7 @@ impl Image {
     }
 
     pub fn encode<W: Write>(&self, w: W) {
-        use png::*;
+        use png::{ColorType, Encoder, FilterType};
         let img = self.image.as_ref();
         let mut encoder = Encoder::new(w, img.width() as u32, img.height() as u32);
         encoder.set_color(ColorType::Indexed);
