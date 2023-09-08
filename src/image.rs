@@ -9,6 +9,7 @@ use rgb::{ComponentBytes, RGB8 as RGB};
 /// Not to be confused with `lodepng::Image` or `macroquad::Image`
 pub struct Image {
     image: ImgVec<u8>,
+    texture: Option<Texture2D>,
     palette: Vec<RGB>,
     /// Transparency table, can be shorter than palette (but not longer)
     trns: Vec<u8>,
@@ -26,6 +27,7 @@ impl Image {
             palette,
             image: ImgVec::new(vec![0; x * y], x, y),
             trns,
+            texture: None,
         }
     }
 
@@ -45,6 +47,7 @@ impl Image {
         Self {
             image,
             palette,
+            texture: None,
             trns,
         }
     }
@@ -60,11 +63,14 @@ impl Image {
     }
 
     pub fn set_pixel(&mut self, index: (usize, usize), color: u8) {
+        self.texture = None;
         assert!((color as usize) < self.palette.len());
         self.image.as_mut()[index] = color;
     }
 
     pub fn set_color(&mut self, index: u8, color: RGB) {
+        // clear texture in case the color was in use.
+        self.texture = None;
         self.palette[index as usize] = color;
     }
 
@@ -74,6 +80,7 @@ impl Image {
     }
 
     pub fn set_transparency(&mut self, index: u8, transparency: u8) {
+        self.texture = None;
         let index = index as usize;
         assert!(index < self.palette.len());
         if self.trns.len() >= index {
@@ -94,7 +101,7 @@ impl Image {
         }
     }
 
-    pub fn to_texture(&self) -> Texture2D {
+    fn to_texture(&self) -> Texture2D {
         let image = self.image.as_ref();
         let width = image.width();
         let height = image.height();
@@ -117,6 +124,14 @@ impl Image {
         );
         t.set_filter(FilterMode::Nearest);
         t
+    }
+
+    // get a reference to the cache texture, creating it if not present.
+    pub fn texture(&mut self) -> &Texture2D {
+        if self.texture.is_none() {
+            self.texture = Some(self.to_texture());
+        }
+        self.texture.as_ref().unwrap()
     }
 
     pub fn encode<W: Write>(&self, w: W) {
