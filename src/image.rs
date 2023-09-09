@@ -1,6 +1,6 @@
 // todo: don't allow(dead_code)
 #![allow(dead_code)]
-use std::io::Write;
+use std::{io::Write, path::Path};
 
 use imgref::{ImgRef, ImgVec};
 use macroquad::prelude::*;
@@ -29,6 +29,55 @@ impl Image {
             trns,
             texture: None,
         }
+    }
+
+    pub fn from_path<P: AsRef<Path>>(path: P) -> anyhow::Result<Self> {
+        let file = std::fs::File::open(path);
+        let Ok(file) = file else {
+            let e = file.unwrap_err();
+            panic!("error while opening file: {e}");
+        };
+        // Decode png
+        let png = png::Decoder::new(file);
+        let mut png = png.read_info()?;
+
+        assert!(
+            png.info().color_type == png::ColorType::Indexed,
+            "Image must be palette-based"
+        );
+
+        let mut palette = Vec::with_capacity(256);
+        match png.info().palette.clone() {
+            Some(plte) => {
+                for i in (0..plte.len()).step_by(3) {
+                    palette.push(RGB::new(plte[i], plte[i + 1], plte[i + 2]));
+                }
+            }
+            None => {
+                palette.extend([RGB::default(); 2]);
+            }
+        }
+
+        let trns = match png.info().trns.clone() {
+            Some(c) => c.into_owned(),
+            None => Vec::with_capacity(255),
+        };
+
+        let mut buf = vec![0; png.output_buffer_size()];
+        let o_info = png.next_frame(&mut buf)?;
+        let buf = match o_info.bit_depth {
+            BitDepth::Sixteen => panic!("16-bit colormap png!?"),
+            BitDepth::Eight => buf,
+            bitdepth => unpack(&buf, bitdepth, o_info.width as usize),
+        };
+
+        Ok(Self::from_buffers(
+            o_info.width,
+            o_info.height,
+            buf,
+            palette,
+            trns,
+        ))
     }
 
     /// Creates image from raw u8 buffers.
