@@ -237,7 +237,7 @@ pub fn unpack(packed: &[u8], bitdepth: BitDepth, line_width: usize) -> Vec<u8> {
             let mask = modulus - 1;
             let px_per_byte = 8 / bitdepth as usize;
             let mut line_pos = 0;
-            for byte in packed.iter() {
+            for byte in packed {
                 // iterate over pixel indices in byte
                 // ends early if the pixels are "wasted bytes"
                 for pxi in 0..px_per_byte.min(line_width - line_pos) {
