@@ -1,3 +1,5 @@
+// todo: don't allow(dead_code)
+#![allow(dead_code)]
 use anyhow::Result;
 use macroquad::prelude::*;
 
