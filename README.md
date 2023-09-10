@@ -7,7 +7,7 @@ An image editor specialised for pallette based pngs, currently entirely unimplem
 Running
 
 ```sh
-hex_pixel editor <filename>
+hex_pixel_editor <filename>
 ```
 
 or, more likely
