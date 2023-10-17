@@ -23,6 +23,12 @@ async fn main() -> Result<()> {
     };
 
     let mut img_scale = 1.0;
+    // palette panel size
+    let mut panel = PanelSettings {
+        padding: 3.0,
+        inner_width: 208.0,
+        visible: true,
+    };
     loop {
         clear_background(BG_COLOR);
 
@@ -34,12 +40,9 @@ async fn main() -> Result<()> {
         if is_key_pressed(KeyCode::Minus) {
             img_scale -= 0.1;
         }
-
-        // palette panel size
-        let panel = PanelSettings {
-            padding: 3.0,
-            inner_width: 208.0,
-        };
+        if is_key_pressed(KeyCode::P) {
+            panel.visible = !panel.visible;
+        }
 
         // Draw Image and panel
         panel.draw_image(img.texture(), img_scale);
@@ -53,13 +56,17 @@ struct PanelSettings {
     padding: f32,
     inner_width: f32,
     // panel_width: f32,
-    // display: bool,
+    visible: bool,
 }
 
 impl PanelSettings {
     #[inline]
     fn panel_width(&self) -> f32 {
-        self.inner_width + self.padding
+        if self.visible {
+            self.inner_width + self.padding
+        } else {
+            0.0
+        }
     }
 
     fn draw_image(&self, texture: &Texture2D, img_scale: f32) {
@@ -79,6 +86,9 @@ impl PanelSettings {
     }
 
     fn draw_panel(&self, img: &image::Image) {
+        if !self.visible {
+            return;
+        }
         let topx = screen_width() - self.panel_width();
         draw_rectangle(topx, 0.0, self.panel_width(), screen_height(), BLACK);
         for (i, rgb) in img.palette().iter().enumerate() {
