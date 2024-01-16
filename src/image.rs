@@ -14,21 +14,6 @@ pub struct Image {
 }
 
 impl Image {
-    // Create a blank image
-    pub fn new(x: usize, y: usize) -> Self {
-        // I know this is premature optimisation but I couldn't stop myself.
-        let mut palette = Vec::with_capacity(255);
-        let mut trns = Vec::with_capacity(255);
-        palette.extend([RGB::default(); 2]);
-        trns.push(0);
-        Self {
-            palette,
-            image: ImgVec::new(vec![0; x * y], x, y),
-            trns,
-            texture: None,
-        }
-    }
-
     pub fn from_path<P: AsRef<Path>>(path: P) -> anyhow::Result<Self> {
         let file = std::fs::File::open(path);
         let Ok(file) = file else {
@@ -130,14 +115,6 @@ impl Image {
             self.texture = Some(self.to_texture());
         }
         self.texture.as_ref().unwrap()
-    }
-}
-
-impl Default for Image {
-    fn default() -> Self {
-        /// The width/height of the image
-        const N: usize = 16;
-        Self::new(N, N)
     }
 }
 
