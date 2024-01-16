@@ -1,11 +1,9 @@
-// todo: don't allow(dead_code)
-#![allow(dead_code)]
-use std::{io::Write, path::Path};
+use std::path::Path;
 
-use imgref::{ImgRef, ImgVec};
+use imgref::ImgVec;
 use macroquad::prelude::*;
 use png::BitDepth;
-use rgb::{ComponentBytes, RGB8 as RGB};
+use rgb::RGB8 as RGB;
 /// Not to be confused with `lodepng::Image` or `macroquad::Image`
 pub struct Image {
     image: ImgVec<u8>,
@@ -104,51 +102,6 @@ impl Image {
     pub fn palette(&self) -> &[RGB] {
         &self.palette
     }
-    pub fn image(&self) -> ImgRef<u8> {
-        self.image.as_ref()
-    }
-    pub fn trns(&self) -> &[u8] {
-        &self.trns
-    }
-
-    pub fn set_pixel(&mut self, index: (usize, usize), color: u8) {
-        self.texture = None;
-        assert!((color as usize) < self.palette.len());
-        self.image.as_mut()[index] = color;
-    }
-
-    pub fn set_color(&mut self, index: u8, color: RGB) {
-        // clear texture in case the color was in use.
-        self.texture = None;
-        self.palette[index as usize] = color;
-    }
-
-    pub fn push_color(&mut self, color: RGB) {
-        self.palette.push(color);
-        assert!(self.palette.len() < 256);
-    }
-
-    pub fn set_transparency(&mut self, index: u8, transparency: u8) {
-        self.texture = None;
-        let index = index as usize;
-        assert!(index < self.palette.len());
-        if self.trns.len() >= index {
-            self.trns.resize(index + 1, 255);
-        }
-        self.trns[index] = transparency;
-        self.shrink_trns();
-    }
-
-    /// Remove trailing opaque entries from trns. Doesn't actually shrink the `Vec` capacity.
-    pub fn shrink_trns(&mut self) {
-        let trns = &mut self.trns;
-        while let Some(n) = trns.pop() {
-            if n < 255 {
-                trns.push(n);
-                break;
-            }
-        }
-    }
 
     fn to_texture(&self) -> Texture2D {
         let image = self.image.as_ref();
@@ -181,28 +134,6 @@ impl Image {
             self.texture = Some(self.to_texture());
         }
         self.texture.as_ref().unwrap()
-    }
-
-    pub fn encode<W: Write>(&self, w: W) {
-        use png::{ColorType, Encoder, FilterType};
-        let img = self.image.as_ref();
-        let mut encoder = Encoder::new(w, img.width() as u32, img.height() as u32);
-        encoder.set_color(ColorType::Indexed);
-        encoder.set_palette(self.palette.as_bytes());
-        encoder.set_trns(&self.trns);
-
-        // Packing is not supported yet.
-        encoder.set_depth(BitDepth::Eight);
-
-        // No filtering is recommended for indexed images
-        // (RFC 2083 section 9.6)
-        // https://datatracker.ietf.org/doc/html/rfc2083#page-49
-        encoder.set_filter(FilterType::NoFilter);
-
-        let mut writer = encoder.write_header().unwrap();
-        writer
-            .write_image_data(&self.image.as_ref().to_contiguous_buf().0)
-            .unwrap();
     }
 }
 

@@ -4,7 +4,6 @@ use anyhow::Result;
 use macroquad::prelude::*;
 
 mod image;
-mod text;
 
 const BG_COLOR: Color = color_u8!(60, 10, 0, 255);
 
@@ -92,6 +91,7 @@ impl PanelSettings {
         let topx = screen_width() - self.panel_width();
         draw_rectangle(topx, 0.0, self.panel_width(), screen_height(), BLACK);
         for (i, rgb) in img.palette().iter().enumerate() {
+            let i = i as u8;
             let logical_x = (i % 16) as f32;
             let logical_y = (i / 16) as f32;
             let x = logical_x * self.inner_width / 16. + topx;
