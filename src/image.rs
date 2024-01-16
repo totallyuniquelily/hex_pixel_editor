@@ -43,18 +43,14 @@ impl Image {
             png.info().color_type == png::ColorType::Indexed,
             "Image must be palette-based"
         );
-
-        let mut palette = Vec::with_capacity(256);
-        match png.info().palette.clone() {
-            Some(plte) => {
-                for i in (0..plte.len()).step_by(3) {
-                    palette.push(RGB::new(plte[i], plte[i + 1], plte[i + 2]));
-                }
-            }
-            None => {
-                palette.extend([RGB::default(); 2]);
-            }
-        }
+        let palette = png.info().palette.clone().map_or_else(
+            || vec![RGB::default(); 2],
+            |plte| {
+                plte.chunks_exact(3)
+                    .map(|c| RGB::new(c[0], c[1], c[2]))
+                    .collect::<Vec<RGB>>()
+            },
+        );
 
         let trns = match png.info().trns.clone() {
             Some(c) => c.into_owned(),
